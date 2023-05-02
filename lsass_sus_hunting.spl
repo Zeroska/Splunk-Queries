@@ -1,0 +1,10 @@
+`sysmon` EventCode=10 TargetImage=*lsass.exe CallTrace=*dbgcore.dll* OR CallTrace=*dgbhelp.dll* OR CallTrace=*ntdll.dll*
+| stats count min(_time) as firstTime max(_time) as lastTime by Computer TargetImage TargetProcessId SourceImage, SourceProcessId
+| rename Computer as dest 
+| `security_content_ctime(firstTime)` 
+| `security_content_ctime(lastTime)`
+```Just for you know this won't work anymore because mimikatz is not using dgbcore and dbghelp anymore```
+```The point is not to detect mimikatz but  it will be a great start to identify uncommon GrantedAccess rights to Lsass.exe```
+
+
+`sysmon` EventCode=1 

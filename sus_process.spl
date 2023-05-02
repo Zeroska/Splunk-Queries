@@ -1,0 +1,9 @@
+`sysmon` EventCode=1 process_name=powershell.exe OR process_name=msbuild.exe 
+OR process_name=psexec.exe OR process_name=at.exe OR process_name=schtasks.exe 
+OR process_name=net.exe OR process_name=vssadmin.exe OR process_name=utilman.exe 
+OR process_name=wmic.exe OR process_name=mshta.exe OR process_name=wscript.exe 
+OR process_name=cscript.exe OR process_name=cmd.exe OR process_name=whoami.exe OR process_name=mmc.exe 
+OR process_name=systeminfo.exe OR process_name=csvde.exe OR process_name=certutil.exe 
+| stats values(CommandLine) by host
+```For each host show its CommandLine ```
+
