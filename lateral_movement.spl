@@ -1,1 +1,20 @@
-index="net*" OR `sysmon` 
+index=main 
+(sourcetype=wineventlog
+OR sourcetype=WinEventLog:System) ``` Sysmon and Windows System events```
+| bucket _time span=5s
+| search NOT PipeName IN ("*err*", "*in*", "*out*") ``` Ignore stdin/stdout/stderr pipe connection events```
+| search (ComputerName=Ankith-PC) AND (((Image=SYSTEM) 
+AND (EventCode=11 OR EventCode=18)) OR (EventCode=7045))
+|  rex field=TargetFilename "(?P<Remotely_Copied_File>[^\\\]+)$"
+|  rex field=Service_File_Name "(?P<Service_Start_Binary>[^\\\]+\.exe)\b.*"
+| stats count values(PipeName) as PipeName_Connected, 
+values(Remotely_Copied_File) as Remotely_Copied_File, 
+values(Service_Start_Binary) as Service_Start_Binary, 
+earliest(_time) as "First Seen", latest(_time) as "Last Seen"
+ by _time
+ | where match(Remotely_Copied_File, Service_Start_Binary)
+| fieldformat "First Seen"=strftime('First Seen', "%c")
+| fieldformat "Last Seen"=strftime('Last Seen', "%c")
+ | dedup Remotely_Copied_File
+ | table PipeName_Connected, Remotely_Copied_File, Service_Start_Binary, "First Seen", "Last Seen"
+ | search PipeName_Connected=*, Remotely_Copied_File=*, Service_Start_Binary=*

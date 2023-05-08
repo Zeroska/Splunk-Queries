@@ -1,0 +1,10 @@
+```Create event over time for each site such as Chisholm, Madero, Ignacio for network 
+or for all the host```
+
+index="main" or index="net*"
+| timechart count
+
+
+```The total ammount of event that flow in the system```
+
+| eventcount index="main" OR index="net*"

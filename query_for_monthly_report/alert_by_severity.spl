@@ -1,0 +1,8 @@
+index=_audit action="alert_fired"
+| eval severity=case(severity=2, "Low", severity=3,"Medium", severity=4, "High", severity=5, "Critical")
+| stats count by severity 
+```This is way to slow```
+
+
+| tstats count WHERE index=_audit by severity
+| eval severity=case(severity=2, "Low", severity=3,"Medium", severity=4, "High", severity=5, "Critical")
