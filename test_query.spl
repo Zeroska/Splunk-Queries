@@ -1,0 +1,38 @@
+index="net*" sourcetype="pan:traffic" dest_ip!="8.8.8.8" 
+| eval megabytes = bytes_out/(1024*1024)
+| eval external=if(match(dest_ip, "(192\.168\.)\d{1,3}\.\d{1,3}|(10\.)\d{1,3}\.\d{1,3}\.\d{1,3}|(172\.1[6-9]\.)\d{1,3}\.\d{1,3}|(172\.2[0-9]\.)\d{1,3}\.\d{1,3}|(172\.3[0-1]\.)\d{1,3}\.\d{1,3}"), 1, 0)
+| eval internal=if(match(src_ip, "(192\.168\.)\d{1,3}\.\d{1,3}|(10\.)\d{1,3}\.\d{1,3}\.\d{1,3}|(172\.1[6-9]\.)\d{1,3}\.\d{1,3}|(172\.2[0-9]\.)\d{1,3}\.\d{1,3}|(172\.3[0-1]\.)\d{1,3}\.\d{1,3}"), 1, 0)
+| where internal == 1
+| where external!=1 ```Dest is not belong in private ip address range```
+| where megabytes != 0 ```Filter out all the 0 megabytes bytes out```
+| eventstats sum(bytes_out) AS total_bytes_out BY src_ip
+| table src_ip dest_ip bytes_out total_bytes_out ```Cool we now know which bytes_out size that send to certain dest, now let apply some algorithm to detect anomaly```
+| sort src – bytes_out
+
+
+
+
+```Percentage of total bytes out from a source to a single destination this would help you to understand which is the normal connection -> in order for you to whitelist```
+```Use case:  ```
+sourcetype="pan:traffic"
+| eval external=if(match(dest_ip, "(192\.168\.)\d{1,3}\.\d{1,3}|(10\.)\d{1,3}\.\d{1,3}\.\d{1,3}|(172\.1[6-9]\.)\d{1,3}\.\d{1,3}|(172\.2[0-9]\.)\d{1,3}\.\d{1,3}|(172\.3[0-1]\.)\d{1,3}\.\d{1,3}"), 1, 0)
+| eval internal=if(match(src_ip, "(192\.168\.)\d{1,3}\.\d{1,3}|(10\.)\d{1,3}\.\d{1,3}\.\d{1,3}|(172\.1[6-9]\.)\d{1,3}\.\d{1,3}|(172\.2[0-9]\.)\d{1,3}\.\d{1,3}|(172\.3[0-1]\.)\d{1,3}\.\d{1,3}"), 1, 0)
+| where internal == 1
+| where external!=1 ```Dest is not belong in private ip address range```
+| eventstats sum(bytes_out) AS total_bytes_out BY src_ip
+| eval percent_bytes_out = bytes_out/total_bytes_out * 100
+| table src dest bytes_in bytes_out total_bytes_out percent_bytes_out
+| where percent_bytes_out > 60
+| sort - percent_bytes_out dest_ip
+
+
+
+```Volume of network traffic from one user```
+sourcetype="pan:traffic" (src_ip=<IP address of user> OR dest_ip=<IP address of user>)
+| stats count AS event_count sum(bytes_in) AS bytes_in sum(bytes_out) AS bytes_out sum(bytes) as bytes_total by src_ip dest_ip
+| eval mb_in=round((bytes_in/1024/1024),2)  
+| eval mb_out=round((bytes_out/1024/1024),2) 
+| eval mb_total=round((bytes_total/1024/1024),2)
+| fields - bytes*
+| sort - mb_total
+| head 10

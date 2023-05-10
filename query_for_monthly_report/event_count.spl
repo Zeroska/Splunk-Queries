@@ -1,0 +1,3 @@
+```For each customer we generate a funnel chart for them```
+index="customer-index" sourcetype=* 
+| stats count 
