@@ -1,3 +1,3 @@
 ``````
 index="customer-index" sourcetype="wineventlog" 
-| stats count by AccountName 
+| stats count by Account_Name 
