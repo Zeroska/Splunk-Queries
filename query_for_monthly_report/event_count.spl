@@ -1,3 +1,2 @@
-```For each customer we generate a funnel chart for them```
-index="customer-index" sourcetype=* 
-| stats count 
+index="main" sourcetype=* ```Just count all the event that we ingested```
+| stats count
